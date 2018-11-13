@@ -1,4 +1,4 @@
-package com.sweden.webwallet.utils;
+package eth.devkidult.paperwallet.utils;
 
 public class CharMix {
 

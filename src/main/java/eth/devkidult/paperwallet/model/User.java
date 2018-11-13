@@ -1,4 +1,4 @@
-package com.sweden.webwallet.model;
+package eth.devkidult.paperwallet.model;
 
 import lombok.Data;
 

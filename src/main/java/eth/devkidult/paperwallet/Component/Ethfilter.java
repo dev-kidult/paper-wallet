@@ -1,20 +1,16 @@
-package com.sweden.webwallet.Component;
+package eth.devkidult.paperwallet.Component;
 
 import com.google.gson.Gson;
-import com.sweden.webwallet.etherplorerDispatcher.TokenInfo;
-import com.sweden.webwallet.model.Tokens;
-import com.sweden.webwallet.model.TxRecord;
-import com.sweden.webwallet.model.User;
-import com.sweden.webwallet.model.Wallet;
-import com.sweden.webwallet.repository.TokensRepository;
-import com.sweden.webwallet.repository.TxRecordRepository;
-import com.sweden.webwallet.repository.UserRepository;
-import com.sweden.webwallet.repository.WalletRepository;
-import com.sweden.webwallet.utils.ConvertValue;
-import com.sweden.webwallet.utils.FCM;
+import eth.devkidult.paperwallet.etherplorerDispatcher.TokenInfo;
+import eth.devkidult.paperwallet.model.Tokens;
+import eth.devkidult.paperwallet.model.TxRecord;
+import eth.devkidult.paperwallet.model.Wallet;
+import eth.devkidult.paperwallet.repository.TokensRepository;
+import eth.devkidult.paperwallet.repository.TxRecordRepository;
+import eth.devkidult.paperwallet.repository.UserRepository;
+import eth.devkidult.paperwallet.repository.WalletRepository;
+import eth.devkidult.paperwallet.utils.ConvertValue;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.configurationprocessor.json.JSONException;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.context.annotation.Configuration;
 import org.web3j.protocol.admin.Admin;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -24,13 +20,8 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.utils.Numeric;
 
 import javax.annotation.PostConstruct;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.math.BigInteger;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -59,8 +50,6 @@ public class Ethfilter {
     @Autowired
     ConvertValue convertValue;
 
-    @Autowired
-    FCM fcm;
 
     public static String ethBlcokNumber;
 
@@ -112,7 +101,6 @@ public class Ethfilter {
                                 txRecord.setBlock(blockNumber);
                                 System.out.println(txRecord.toString());
                                 txRecordRepository.save(txRecord);
-                                fcm.makeTokenIDAndBody(toWallet,txRecord.getType(),txRecord);
                             }
                         } else {
                             String ethGetCode = web3j.ethGetCode(getTo, DefaultBlockParameterName.LATEST).send().getCode();
@@ -147,7 +135,6 @@ public class Ethfilter {
                                     txRecord.setStatus(status);
                                     txRecord.setBlock(blockNumber);
                                     txRecordRepository.save(txRecord);
-                                    fcm.makeTokenIDAndBody(toWallet,txRecord.getType(),txRecord);
                                 }
                             } else {
                                 if (input == null) {
@@ -216,7 +203,6 @@ public class Ethfilter {
                                         txRecord.setStatus(status);
                                         txRecord.setBlock(blockNumber);
                                         txRecordRepository.save(txRecord);
-                                        fcm.makeTokenIDAndBody(toWallet,txRecord.getType(),txRecord);
                                     }
                                 } else {
                                     //from 만 비교 컨트렉트 전송이력 남기기

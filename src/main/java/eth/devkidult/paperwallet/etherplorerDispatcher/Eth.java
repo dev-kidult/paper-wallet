@@ -1,4 +1,4 @@
-package com.sweden.webwallet.etherplorerDispatcher;
+package eth.devkidult.paperwallet.etherplorerDispatcher;
 
 import lombok.Data;
 

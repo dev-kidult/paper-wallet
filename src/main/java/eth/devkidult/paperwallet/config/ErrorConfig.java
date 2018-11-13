@@ -1,4 +1,4 @@
-package com.sweden.webwallet.config;
+package eth.devkidult.paperwallet.config;
 
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;

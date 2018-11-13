@@ -1,4 +1,4 @@
-package com.sweden.webwallet.Component;
+package eth.devkidult.paperwallet.Component;
 
 import org.springframework.stereotype.Component;
 

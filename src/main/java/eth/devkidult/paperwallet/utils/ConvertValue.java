@@ -1,13 +1,12 @@
-package com.sweden.webwallet.utils;
+package eth.devkidult.paperwallet.utils;
 
-import com.sweden.webwallet.model.TxRecord;
-import com.sweden.webwallet.repository.TokensRepository;
+import eth.devkidult.paperwallet.model.TxRecord;
+import eth.devkidult.paperwallet.repository.TokensRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.MathContext;
 import java.math.RoundingMode;
 
 @Service

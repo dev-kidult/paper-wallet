@@ -1,4 +1,4 @@
-package com.sweden.webwallet.config;
+package eth.devkidult.paperwallet.config;
 
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;

@@ -1,10 +1,10 @@
-package com.sweden.webwallet.utils;
+package eth.devkidult.paperwallet.utils;
 
-import com.sweden.webwallet.model.Tokens;
-import com.sweden.webwallet.model.TxRecord;
-import com.sweden.webwallet.model.Wallet;
-import com.sweden.webwallet.repository.TokensRepository;
-import com.sweden.webwallet.repository.TxRecordRepository;
+import eth.devkidult.paperwallet.model.Tokens;
+import eth.devkidult.paperwallet.model.TxRecord;
+import eth.devkidult.paperwallet.model.Wallet;
+import eth.devkidult.paperwallet.repository.TokensRepository;
+import eth.devkidult.paperwallet.repository.TxRecordRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.web3j.crypto.Credentials;
@@ -14,7 +14,6 @@ import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.admin.Admin;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.Transaction;
-import org.web3j.protocol.core.methods.response.EthBlockNumber;
 import org.web3j.protocol.core.methods.response.EthCall;
 import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.utils.Numeric;
@@ -50,7 +49,6 @@ public class Web3jLogic{
         EthCall ethCall = web3j.ethCall(transaction,DefaultBlockParameterName.LATEST).send();
         BigDecimal tokenBalance = BigDecimal.ZERO;
         if(!ethCall.getValue().equals("0x")) {
-            //tokenBalance = BigDecimal.valueOf(Numeric.toBigInt(ethCall.getValue()).longValue());
             tokenBalance = new BigDecimal(Numeric.toBigInt(ethCall.getValue()).toString());
         }
 
@@ -68,7 +66,6 @@ public class Web3jLogic{
     }
 
     public void SendEth(Wallet wallet , String to , String value , String fee) throws Exception{
-        //필요한거 월렛 ( 패스 , 어드레스 ) , 받는사람 , 벨류 , 수수료
         Double doubleValue = Double.parseDouble(value)*Math.pow(10,18);
         Double doubleFee = Double.parseDouble(fee)*Math.pow(10,18);
         BigInteger convertValue = new BigInteger(BigDecimal.valueOf(doubleValue).toPlainString());
@@ -77,8 +74,6 @@ public class Web3jLogic{
 
         Credentials credentials = WalletUtils.loadCredentials(wallet.getPassword(),wallet.getFilePath());
         BigInteger nonce = web3j.ethGetTransactionCount(wallet.getAddress(),DefaultBlockParameterName.LATEST).send().getTransactionCount();
-
-        System.out.println("nonce:"+nonce+"/ convertFee:"+convertFee+"/ to:"+to+"/ convertValue:"+convertValue);
 
         RawTransaction txRaw = RawTransaction.createEtherTransaction(nonce,convertFee,GasLimit.ETH_GAS_LIMIT,to,convertValue);
 
@@ -99,13 +94,10 @@ public class Web3jLogic{
         txRecord.setHash(hash);
         txRecord.setStatus("pending");
 
-        System.out.println(txRecord.toString());
-
         txRecordRepository.save(txRecord);
     }
 
     public void SendToken(Wallet wallet , String to , String value , String fee , String tokenAddress) throws Exception{
-        //필요한거 월렛 ( 패스 , 어드레스 ) , 받는사람 , 벨류 , 수수료 , 그 토큰 어드레스 , 그 토큰 데시멀
         String convertTo = to.substring(2,to.length());
 
         Tokens tokens = tokensRepository.findOne(tokenAddress);
@@ -129,8 +121,6 @@ public class Web3jLogic{
         Credentials credentials = WalletUtils.loadCredentials(wallet.getPassword(),wallet.getFilePath());
         BigInteger nonce = web3j.ethGetTransactionCount(wallet.getAddress(),DefaultBlockParameterName.LATEST).send().getTransactionCount();
 
-        System.out.println("nonce:"+nonce+"/ convertFee:"+convertFee+"/ tokenAddress:"+tokenAddress+"/ convertValue:"+convertValue +"/ convertTo:"+convertTo);
-
         RawTransaction txRaw = RawTransaction.createTransaction(nonce,convertFee,GasLimit.TOKEN_GAS_LIMIT,tokenAddress,"0xa9059cbb000000000000000000000000"+convertTo+convertValue);
 
         byte[] txSignedBytes = TransactionEncoder.signMessage(txRaw,credentials);
@@ -149,6 +139,7 @@ public class Web3jLogic{
         txRecord.setFee(convertFee.multiply(GasLimit.TOKEN_GAS_LIMIT));
         txRecord.setHash(hash);
         txRecord.setStatus("pending");
+
         txRecordRepository.save(txRecord);
     }
 

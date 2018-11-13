@@ -1,6 +1,6 @@
-package com.sweden.webwallet.repository;
+package eth.devkidult.paperwallet.repository;
 
-import com.sweden.webwallet.model.Wallet;
+import eth.devkidult.paperwallet.model.Wallet;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

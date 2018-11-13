@@ -1,4 +1,4 @@
-package com.sweden.webwallet.gasStaionDispatcher;
+package eth.devkidult.paperwallet.gasStaionDispatcher;
 
 import lombok.Data;
 

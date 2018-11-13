@@ -1,6 +1,6 @@
-package com.sweden.webwallet.repository;
+package eth.devkidult.paperwallet.repository;
 
-import com.sweden.webwallet.model.TxRecord;
+import eth.devkidult.paperwallet.model.TxRecord;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,7 +13,7 @@ public interface TxRecordRepository extends JpaRepository<TxRecord, String> {
 
     Page<TxRecord> findByFromAddressOrToAddressOrderByAgeDesc(String fromAddress, String toAddress, Pageable pageable);
 
-    Page<TxRecord> findByFromAddressLikeOrToAddressLikeOrHashLikeOrTypeLikeOrderByAgeDesc(String fromAddress, String toAddress, String hash, String type,Pageable pageable);
+    Page<TxRecord> findByFromAddressLikeOrToAddressLikeOrHashLikeOrTypeLikeOrderByAgeDesc(String fromAddress, String toAddress, String hash, String type, Pageable pageable);
 
     List<TxRecord> findByFromAddressAndHashLikeOrFromAddressAndTypeLikeOrToAddressAndHashLikeOrToAddressAndTypeLikeOrderByAgeDesc(String fromAddress1, String hash1, String fromAddress2, String type1, String toAddress1, String hash2, String toAddress2, String type2);
 

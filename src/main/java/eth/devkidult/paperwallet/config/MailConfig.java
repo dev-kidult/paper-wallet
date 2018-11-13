@@ -1,4 +1,4 @@
-package com.sweden.webwallet.config;
+package eth.devkidult.paperwallet.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

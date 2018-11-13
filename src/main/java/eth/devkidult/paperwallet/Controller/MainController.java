@@ -1,23 +1,22 @@
-package com.sweden.webwallet.Controller;
+package eth.devkidult.paperwallet.Controller;
 
-import com.github.mkopylec.recaptcha.validation.RecaptchaValidator;
-import com.github.mkopylec.recaptcha.validation.ValidationResult;
+
 import com.google.gson.Gson;
-import com.sweden.webwallet.Component.Dispatcher;
-import com.sweden.webwallet.Component.MailService;
-import com.sweden.webwallet.etherplorerDispatcher.AddressToToken;
-import com.sweden.webwallet.etherplorerDispatcher.TokenInfo;
-import com.sweden.webwallet.model.Tokens;
-import com.sweden.webwallet.model.TxRecord;
-import com.sweden.webwallet.model.User;
-import com.sweden.webwallet.model.Wallet;
-import com.sweden.webwallet.repository.TokensRepository;
-import com.sweden.webwallet.repository.TxRecordRepository;
-import com.sweden.webwallet.repository.UserRepository;
-import com.sweden.webwallet.repository.WalletRepository;
-import com.sweden.webwallet.utils.ConvertValue;
-import com.sweden.webwallet.utils.PasswordEncode;
-import com.sweden.webwallet.utils.Web3jLogic;
+import eth.devkidult.paperwallet.Component.Dispatcher;
+import eth.devkidult.paperwallet.Component.MailService;
+import eth.devkidult.paperwallet.etherplorerDispatcher.AddressToToken;
+import eth.devkidult.paperwallet.etherplorerDispatcher.TokenInfo;
+import eth.devkidult.paperwallet.model.Tokens;
+import eth.devkidult.paperwallet.model.TxRecord;
+import eth.devkidult.paperwallet.model.User;
+import eth.devkidult.paperwallet.model.Wallet;
+import eth.devkidult.paperwallet.repository.TokensRepository;
+import eth.devkidult.paperwallet.repository.TxRecordRepository;
+import eth.devkidult.paperwallet.repository.UserRepository;
+import eth.devkidult.paperwallet.repository.WalletRepository;
+import eth.devkidult.paperwallet.utils.ConvertValue;
+import eth.devkidult.paperwallet.utils.PasswordEncode;
+import eth.devkidult.paperwallet.utils.Web3jLogic;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -28,7 +27,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.web3j.crypto.CipherException;
@@ -41,7 +43,9 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -64,9 +68,6 @@ public class MainController {
     TxRecordRepository txRecordRepository;
 
     @Autowired
-    RecaptchaValidator recaptchaValidator;
-
-    @Autowired
     Admin web3j;
 
     @Autowired
@@ -81,10 +82,10 @@ public class MainController {
     @Autowired
     ConvertValue convertValue;
 
-    PasswordEncode passwordEncode = new PasswordEncode();
+    private PasswordEncode passwordEncode = new PasswordEncode();
 
 
-    final String DEFAULT_PATH = WalletUtils.getMainnetKeyDirectory() + "/";
+    private final String DEFAULT_PATH = WalletUtils.getMainnetKeyDirectory() + "/";
 
     @RequestMapping("/")
     public String home(HttpServletRequest request, HttpSession session, HttpServletResponse response) throws IOException {
@@ -114,12 +115,8 @@ public class MainController {
         }
     }
 
-    //로그인
     @PostMapping("/signIn")
-    public String signIn(User user, HttpServletRequest request, HttpSession session, RedirectAttributes redirectAttributes, HttpServletResponse response, String autoLogin) throws IOException {
-        ValidationResult result = recaptchaValidator.validate(request);
-        //if (result.isSuccess()) {
-        if (true) {
+    public String signIn(User user, HttpSession session, RedirectAttributes redirectAttributes, HttpServletResponse response, String autoLogin) throws IOException {
             User dbUser = userRepository.findOne(user.getEmail());
             if (dbUser == null) {
                 redirectAttributes.addFlashAttribute("error", "This user does not exist");
@@ -136,13 +133,9 @@ public class MainController {
                 redirectAttributes.addFlashAttribute("error", "The password is incorrect");
                 return "redirect:/";
             }
-        } else {
-            redirectAttributes.addFlashAttribute("error", "Check the Recaptcha");
-            return "redirect:/";
-        }
+
     }
 
-    //로그아웃
     @RequestMapping("/signOut")
     public String signOut(HttpSession session, HttpServletRequest request, HttpServletResponse response) {
         session.invalidate();
@@ -159,7 +152,6 @@ public class MainController {
         return "/index";
     }
 
-    //토큰이미지 얻어오기
     @RequestMapping("/getTokenImage/{id}")
     public ResponseEntity<byte[]> getTokenImage(@PathVariable String id) {
 
@@ -171,25 +163,21 @@ public class MainController {
         return new ResponseEntity<byte[]>(img, httpHeaders, HttpStatus.OK);
     }
 
-    //비밀번호찾기 이동
     @GetMapping("/findPassword")
     public String findPassword() {
         return "/findPassword";
     }
 
-    //비밀번호변경 이동
     @GetMapping("/changePassword")
     public String changePassword() {
         return "/changePassword";
     }
 
-    //지갑만들기 이동
     @GetMapping("/createWallet")
     public String createWallet() {
         return "/createWallet";
     }
 
-    //지갑만들기
     @PostMapping("/createWallet")
     public String createWallet(String walletPassword, String walletName, HttpSession session, RedirectAttributes redirectAttributes) throws Exception {
         User user = (User) session.getAttribute("sessionUser");
@@ -198,15 +186,15 @@ public class MainController {
             redirectAttributes.addFlashAttribute("error", "You can only create up to 5 wallets");
             return "redirect:/";
         } else {
-            String walletpath = DEFAULT_PATH + user.getEmail() + "/";//기본경로+이메일
-            File file = new File(walletpath);
+            String walletPath = DEFAULT_PATH + user.getEmail() + "/";//기본경로+이메일
+            File file = new File(walletPath);
             if (!file.exists()) {
                 file.mkdirs();
             }
-            String fileName = WalletUtils.generateNewWalletFile(walletPassword, new File(walletpath), true);
-            Credentials credentials = WalletUtils.loadCredentials(walletPassword, walletpath + fileName);
+            String fileName = WalletUtils.generateNewWalletFile(walletPassword, new File(walletPath), true);
+            Credentials credentials = WalletUtils.loadCredentials(walletPassword, walletPath + fileName);
             Wallet wallet = new Wallet();
-            wallet.setFilePath(walletpath + fileName);
+            wallet.setFilePath(walletPath + fileName);
             wallet.setUser(user);
             wallet.setAddress(credentials.getAddress());
             wallet.setPassword(walletPassword);
@@ -222,14 +210,11 @@ public class MainController {
         }
     }
 
-    //지갑선택
     @GetMapping("/selectWallet")
     public String selectWallet(HttpSession session, String walletAddress) throws IOException {
         Wallet wallet = walletRepository.findOne(walletAddress);
         if (wallet != null) {
-            System.out.println(session.getAttribute("selectedWallet"));
             session.setAttribute("selectedWallet", wallet);
-            System.out.println(session.getAttribute("selectedWallet"));
             session.setAttribute("tokenAndValues", tokenAndValues(wallet));
             return "redirect:/";
         } else {
@@ -238,7 +223,6 @@ public class MainController {
     }
 
 
-    //전송페이지 이동
     @PostMapping("/sendForm")
     public String sendForm(String tokenAddress, String havingValue, String symbol, Model model, HttpSession session) throws IOException{
 
@@ -249,9 +233,9 @@ public class MainController {
 
         model.addAttribute("tokenAddress", tokenAddress);
         if (tokenAddress.equals("ETH")) {
-            model.addAttribute("fee", 21000);
+            model.addAttribute("fee", 21000); //eth전송
         } else {
-            model.addAttribute("fee", 90000);
+            model.addAttribute("fee", 90000); //token전송
         }
         model.addAttribute("havingValue", havingValue);
         model.addAttribute("symbol", symbol);
@@ -273,7 +257,6 @@ public class MainController {
         return "/send";
     }
 
-    //전송
     @PostMapping("/sending")
     public String sending(HttpSession session, String to, String value, String fee, String tokenAddress, RedirectAttributes redirectAttributes) throws Exception {
         Wallet wallet = (Wallet) session.getAttribute("selectedWallet");
@@ -282,7 +265,6 @@ public class MainController {
         double valueD = Double.parseDouble(value);
         double feeD = Double.parseDouble(fee);
         if (!tokenAddress.equals("ETH")) {
-            System.out.println("havingValueD = "+havingValueD +"/feeD = "+feeD);
             if(havingValueD < feeD)
                 redirectAttributes.addFlashAttribute("error","The fee is not enough.");
             else
@@ -298,7 +280,6 @@ public class MainController {
     }
 
 
-    //트랜잭션 레코드
     @GetMapping("/transactionRecords")
     public String transactionRecords(HttpSession session, Model model, @PageableDefault(size = 7) Pageable pageable) {
         Wallet wallet = (Wallet) session.getAttribute("selectedWallet");
@@ -338,7 +319,7 @@ public class MainController {
     }
 
     @PostMapping("/transactionRecords")
-    public String transactionRecords(HttpSession session, Model model,String search) {
+    public String transactionRecords(HttpSession session, Model model, String search) {
         Wallet wallet = (Wallet) session.getAttribute("selectedWallet");
         if(wallet == null){
             return "redirect:/";
@@ -348,10 +329,7 @@ public class MainController {
         else
             search = "%"+search+"%";
         String address = wallet.getAddress();
-        System.out.println(address);
-        System.out.println(search);
         List<TxRecord> txRecordList = txRecordRepository.findByFromAddressAndHashLikeOrFromAddressAndTypeLikeOrToAddressAndHashLikeOrToAddressAndTypeLikeOrderByAgeDesc(address,search,address,search,address,search,address,search);
-        System.out.println(txRecordList.size());
         List<ReturnTxRecord> txRecordList1 = new ArrayList<>();
 
         for (TxRecord txRecord : txRecordList) {
@@ -381,7 +359,6 @@ public class MainController {
         return "/transactionRecords";
     }
 
-    //트랜잭션 상세보기
     @GetMapping("/transactionInfo")
     public String transactionInfo(String hash, Model model) {
         TxRecord txRecord = txRecordRepository.findOne(hash);
@@ -404,7 +381,6 @@ public class MainController {
         return "/transactionInfo";
     }
 
-    //토큰눌렀을때 화면
     @GetMapping("/txRecord")
     public String txRecord(HttpSession session, Model model, String typeAddress) throws IOException {
         Wallet wallet = (Wallet) session.getAttribute("selectedWallet");
@@ -466,7 +442,6 @@ public class MainController {
         return "/token";
     }
 
-    //내지갑 이동
     @GetMapping("/myWallet")
     public String myWallet(HttpSession session, Model model) throws IOException{
         List<Wallet> walletList = (List)session.getAttribute("walletList");
@@ -484,15 +459,13 @@ public class MainController {
         return "/myWallet";
     }
 
-    //지갑추가 이동
     @GetMapping("/importWallet")
     public String importWallet() {
         return "/importWallet";
     }
 
-    //지갑추가
     @PostMapping("/importWallet/{type}")
-    public String importWallet(@PathVariable String type, String keyword, String password, HttpSession session, MultipartFile file, String walletName,RedirectAttributes redirectAttributes) throws Exception {
+    public String importWallet(@PathVariable String type, String keyword, String password, HttpSession session, MultipartFile file, String walletName, RedirectAttributes redirectAttributes) throws Exception {
         User user = (User) session.getAttribute("sessionUser");
         int count = walletRepository.countByUser_Email(user.getEmail());
         if (count >= 5) {
@@ -520,11 +493,11 @@ public class MainController {
                         Gson gson = new Gson();
                         AddressToToken addressToToken = gson.fromJson(dispatcher.response(), AddressToToken.class);
 
-                        List<com.sweden.webwallet.etherplorerDispatcher.Tokens> tokensList = addressToToken.getTokens();
+                        List<eth.devkidult.paperwallet.etherplorerDispatcher.Tokens> tokensList = addressToToken.getTokens();
 
                         List<String> tokenList = new ArrayList<>();
                         if (tokensList != null) {
-                            for (com.sweden.webwallet.etherplorerDispatcher.Tokens tokens : tokensList) {
+                            for (eth.devkidult.paperwallet.etherplorerDispatcher.Tokens tokens : tokensList) {
                                 String tokenAddress = tokens.getTokenInfo().getAddress();
                                 tokenList.add(tokenAddress);
                                 Tokens inputTokens = tokensRepository.findOne(tokenAddress);
@@ -584,12 +557,12 @@ public class MainController {
 
                 System.out.println(addressToToken.toString());
 
-                List<com.sweden.webwallet.etherplorerDispatcher.Tokens> tokensList = addressToToken.getTokens();
+                List<eth.devkidult.paperwallet.etherplorerDispatcher.Tokens> tokensList = addressToToken.getTokens();
 
                 List<String> tokenList = new ArrayList<>();
 
                 if (tokensList.size() > 0) {
-                    for (com.sweden.webwallet.etherplorerDispatcher.Tokens tokens : tokensList) {
+                    for (eth.devkidult.paperwallet.etherplorerDispatcher.Tokens tokens : tokensList) {
                         String tokenAddress = tokens.getTokenInfo().getAddress();
                         tokenList.add(tokenAddress);
                         Tokens inputTokens = tokensRepository.findOne(tokenAddress);
@@ -641,7 +614,6 @@ public class MainController {
     }
 
 
-    //로그인 세션체크
     public boolean checkSignIn(HttpSession session) {
         if (session.getAttribute("sessionUser") == null)
             return false;
@@ -649,7 +621,6 @@ public class MainController {
             return true;
     }
 
-    //로그인처리
     public void readyToSignIn(User user, HttpSession session) throws IOException {
         List<Wallet> walletList = walletRepository.findByUser_Email(user.getEmail());
         User dbUser = userRepository.findOne(user.getEmail());
@@ -670,7 +641,6 @@ public class MainController {
         }
     }
 
-    //로그인했을때 값들 담아주기
     public List<HavingTokenAndValue> tokenAndValues(Wallet wallet) throws IOException {
         String[] tokens = null;
         if (wallet.getTokens() != null) {
@@ -680,8 +650,6 @@ public class MainController {
         HavingTokenAndValue eth = new HavingTokenAndValue();
         eth.setTokenName("Ethereum");
         eth.setTokenSymbol("ETH");
-        //eth.setTokenImg();
-        //나중에 이더 이미지 넣기
         eth.setContractAddress("ETH");
         eth.setTokenValue(web3jLogic.EthBalance(wallet.getAddress()).toString());
         tokenAndValues.add(eth);

@@ -1,4 +1,4 @@
-package com.sweden.webwallet.utils;
+package eth.devkidult.paperwallet.utils;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;

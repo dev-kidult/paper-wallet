@@ -1,4 +1,4 @@
-package com.sweden.webwallet.config;
+package eth.devkidult.paperwallet.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -12,20 +12,13 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
         super.addInterceptors(registry);
         registry.addInterceptor(new LoginCheckInterceptor())
                 .addPathPatterns("/**")
-                .excludePathPatterns("/admin/**")
-                .excludePathPatterns("/admin/chart/**")
                 .excludePathPatterns("/")
                 .excludePathPatterns("/signIn")
                 .excludePathPatterns("/getTokenImage/**")
                 .excludePathPatterns("/findPassword")
                 .excludePathPatterns("/verifyEmail")
                 .excludePathPatterns("/signUp")
-                .excludePathPatterns("/checkEmail")
-                .excludePathPatterns("/checkAdminIdx");
-        registry.addInterceptor(new AdminLoginCheckInterceptor())
-                .addPathPatterns("/admin/**")
-                .excludePathPatterns("/admin")
-                .excludePathPatterns("/admin/signIn");
+                .excludePathPatterns("/checkEmail");
     }
 
 }
